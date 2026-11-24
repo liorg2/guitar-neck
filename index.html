@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>צוואר גיטרה – תווים וסולמות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --stage:#1c2430; --stage2:#232d3b; --line:#344155; --text:#eef1f4; --muted:#97a3b4;
+    --enamel:#e7b23e; --enamel-dk:#c8932a; --ink:#2b1d08; --led:#ff3b30;
+    --wood1:#3d2516; --wood2:#2a180e; --fret:#cfc8ba; --nut:#efe6d2;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--stage)}
+  body{margin:0;color:var(--text);font-family:Rubik,system-ui,sans-serif;font-size:15px;
+       background:radial-gradient(120% 60% at 50% 0%,#2a3547 0%,var(--stage) 60%);min-height:100vh;
+       -webkit-tap-highlight-color:transparent}
+  button,select,input{font-family:inherit}
+  :focus-visible{outline:3px solid #7cc4ff;outline-offset:2px}
+  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+
+  /* ---------- The pedal ---------- */
+  .pedal{position:relative;background:linear-gradient(170deg,#f0c255 0%,var(--enamel) 45%,var(--enamel-dk) 100%);
+         color:var(--ink);border-radius:22px;padding:22px 22px 20px;
+         box-shadow:inset 0 2px 0 #fff6,inset 0 -3px 0 #0003,0 18px 40px #0007,0 2px 0 #0004}
+  .screw{position:absolute;width:12px;height:12px;border-radius:50%;
+         background:radial-gradient(circle at 35% 35%,#fff 0,#bbb 30%,#6d6d6d 75%);box-shadow:0 1px 1px #0006}
+  .screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:#555;transform:rotate(35deg)}
+  .screw.a{top:10px;right:10px}.screw.b{top:10px;left:10px}.screw.c{bottom:10px;right:10px}.screw.d{bottom:10px;left:10px}
+
+  .brand{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .brand h1{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:44px;line-height:.9;margin:0;letter-spacing:-.5px}
+  .brand p{margin:6px 0 0;font-size:14px;opacity:.75;max-width:32ch}
+
+  .toggle{display:flex;background:#2b1d0822;border-radius:999px;padding:3px;box-shadow:inset 0 1px 3px #0004}
+  .toggle button{border:0;background:transparent;color:var(--ink);padding:7px 14px;border-radius:999px;font-size:15px;font-weight:500;cursor:pointer}
+  .toggle button.on{background:var(--ink);color:var(--enamel);font-weight:700}
+
+  .knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .knob{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .knob span{font-size:13px;font-weight:700;padding-inline-start:4px}
+  .knob select{appearance:none;-webkit-appearance:none;width:100%;font-size:15px;font-weight:500;color:#f4ead6;
+               background:#2b1d08 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e7b23e'/%3E%3C/svg%3E") no-repeat left 12px center;
+               border:0;border-radius:12px;padding:11px 12px 11px 28px;box-shadow:inset 0 2px 4px #0008;cursor:pointer}
+  .knob select:disabled{opacity:.45;cursor:not-allowed}
+
+  .deck{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-top:18px}
+  .tempo{display:flex;flex-direction:column;gap:8px}
+  .tempo .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+  .tempo output{font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:8px;background:#2b1d08;box-shadow:inset 0 1px 3px #000a}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+       background:radial-gradient(circle at 35% 35%,#fff,#bdbdbd 60%,#8a8a8a);box-shadow:0 2px 4px #0008;cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#ddd;box-shadow:0 2px 4px #0008}
+  .switches{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:4px}
+  .sw-lbl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer}
+  .sw-lbl input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:#2b1d0844;position:relative;cursor:pointer;transition:background .15s;box-shadow:inset 0 1px 3px #0005}
+  .sw-lbl input::after{content:"";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#fff8e6;box-shadow:0 1px 2px #0006;transition:right .15s}
+  .sw-lbl input:checked{background:var(--ink)}
+  .sw-lbl input:checked::after{right:19px;background:var(--enamel)}
+
+  .foot{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .led{width:12px;height:12px;border-radius:50%;background:#5a1410;box-shadow:inset 0 1px 2px #000a;transition:background .1s, box-shadow .1s}
+  .playing .led{background:var(--led);box-shadow:0 0 6px var(--led),0 0 16px #ff3b30aa}
+  #playBtn{width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;
+           background:radial-gradient(circle at 40% 35%,#fafafa 0,#cfcfcf 35%,#8d8d8d 70%,#6a6a6a 100%);
+           box-shadow:0 0 0 6px #2b1d08,0 6px 0 6px #1a1105,0 10px 18px #000a;transition:transform .08s, box-shadow .08s}
+  #playBtn:active{transform:translateY(4px);box-shadow:0 0 0 6px #2b1d08,0 2px 0 6px #1a1105,0 4px 10px #000a}
+  #playBtn:disabled{opacity:.5;cursor:not-allowed}
+  #playLbl{font-size:14px;font-weight:700}
+
+  /* ---------- Below the pedal ---------- */
+  .sound{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:10px 14px;border-radius:14px;background:#ff3b3018;border:1px solid #ff3b3055}
+  .sound button{flex:none;border:0;border-radius:999px;background:var(--led);color:#fff;font-weight:700;font-size:15px;padding:9px 16px;cursor:pointer}
+  .sound small{color:var(--muted);font-size:12px;line-height:1.35}
+
+  .scaleline{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:22px 0 12px}
+  .scaleline h2{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:22px;margin:0 0 0 6px}
+  .tok{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;padding:0 8px;border-radius:14px;font-size:13px;font-weight:700}
+  .tok.r{box-shadow:0 0 0 2px #fff}
+  .hint{color:var(--muted);font-size:14px}
+
+  .filter{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+  .filter::-webkit-scrollbar{display:none}
+  .chip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;border-radius:999px;border:1px solid var(--line);
+        background:var(--stage2);color:var(--text);font-size:14px;cursor:pointer}
+  .chip.on{background:var(--text);color:var(--stage);border-color:var(--text);font-weight:700}
+  .sw{width:14px;height:14px;border-radius:50%;display:inline-block;flex:none}
+  .filter-cap{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-top:2px}
+  .ghostbtn{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+
+  /* ---------- Neck ---------- */
+  .scroller{overflow:auto;border-radius:16px;background:#141a22;border:1px solid var(--line);padding:12px;box-shadow:inset 0 2px 10px #0006}
+  .neck{display:grid;direction:ltr;position:relative;margin:0 auto}
+  .neck.v{grid-template-columns:30px repeat(6,minmax(44px,1fr));max-width:460px}
+  .neck.h{width:max-content}
+
+  .cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(90deg,var(--wood1),var(--wood2))}
+  .neck.h .cell{background:linear-gradient(180deg,var(--wood1),var(--wood2))}
+  .cell.f0{background:#1b2028}
+  .neck.v .cell{border-bottom:2px solid var(--fret)}
+  .neck.v .cell.f0{border-bottom:7px solid var(--nut)}
+  .neck.h .cell{border-right:2px solid var(--fret)}
+  .neck.h .cell.f0{border-right:7px solid var(--nut)}
+  .cell::before{content:"";position:absolute;background:linear-gradient(90deg,#8a8170,#e6dfcf,#8a8170);pointer-events:none}
+  .neck.v .cell::before{top:0;bottom:0;left:50%;transform:translateX(-50%);width:var(--t)}
+  .neck.h .cell::before{left:0;right:0;top:50%;transform:translateY(-50%);height:var(--t);background:linear-gradient(180deg,#8a8170,#e6dfcf,#8a8170)}
+
+  .note{position:relative;z-index:1;min-width:34px;height:30px;padding:0 5px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+        font-size:13px;font-weight:700;line-height:1;white-space:nowrap;background:var(--c);color:var(--tc);box-shadow:0 2px 6px #0008;
+        transition:transform .12s, box-shadow .12s, opacity .12s}
+  .note.hidden{opacity:0}
+  .note.full{opacity:1}
+  .note.ghost{opacity:.42;box-shadow:none}
+  .note.other{opacity:.22;box-shadow:none;transform:scale(.85)}
+  .note.root{box-shadow:0 0 0 3px #fff,0 2px 8px #000a;font-weight:800}
+  .note.ghost.root{box-shadow:0 0 0 2px #ffffffaa}
+  .note.flash{opacity:1!important;transform:scale(1.25);box-shadow:0 0 0 4px #ffffffaa,0 0 18px #fff8}
+
+  .lbl{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
+  .dots{display:flex;gap:4px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#d8cfbf}
+  .neck.v .dots{flex-direction:column}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted);margin-top:14px}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+
+  @media (max-width:560px){
+    .pedal{padding:20px 16px 18px}
+    .brand h1{font-size:36px}
+    .knobs{grid-template-columns:1fr 1fr}
+    .knobs .knob:first-child{grid-column:1 / -1}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="sound" id="soundHint">
+    <button id="soundBtn">🔊 הפעל צליל</button>
+    <small>באייפון, אם עדיין שקט: כבו את מתג ההשתקה בצד המכשיר והגבירו את עוצמת המדיה.</small>
+  </div>
+
+  <section class="pedal" id="pedal" aria-label="בקרות">
+    <i class="screw a"></i><i class="screw b"></i><i class="screw c"></i><i class="screw d"></i>
+
+    <div class="brand">
+      <div>
+        <h1>צוואר</h1>
+        <p>כל התווים על הגיטרה, וסולמות שאפשר לשמוע. הקישו על תו כדי לנגן אותו.</p>
+      </div>
+      <div class="toggle" id="notaSeg" role="group" aria-label="שיטת כתיבה">
+        <button data-n="he" class="on">דו רה מי</button>
+        <button data-n="en">C D E</button>
+      </div>
+    </div>
+
+    <div class="knobs">
+      <label class="knob"><span>סולם</span>
+        <select id="scaleSel">
+          <option value="none">ללא – כל התווים</option>
+          <option value="major">מז׳ור – דו רה מי</option>
+          <option value="minor" selected>פנטטוני מינור</option>
+          <option value="majorPent">פנטטוני מז׳ור</option>
+          <option value="blues">בלוז</option>
+        </select>
+      </label>
+      <label class="knob"><span>טוניקה</span><select id="rootSel"></select></label>
+      <label class="knob"><span>מיקום</span><select id="boxSel"></select></label>
+    </div>
+
+    <div class="deck">
+      <div>
+        <div class="tempo">
+          <div class="row"><label for="bpm">קצב</label><output id="bpmVal">110</output></div>
+          <input type="range" id="bpm" min="50" max="240" value="110">
+        </div>
+        <div class="switches">
+          <label class="sw-lbl"><input type="checkbox" id="octOnly">אוקטבה אחת</label>
+          <label class="sw-lbl"><input type="checkbox" id="showAll" checked>תווים מחוץ לסולם</label>
+        </div>
+      </div>
+      <div class="foot" id="foot">
+        <span class="led"></span>
+        <button id="playBtn" aria-label="נגן סולם"></button>
+        <span id="playLbl">נגן</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="scaleline" id="info"></div>
+
+  <div class="filter-cap">
+    <span>הצג רק תווים מסוימים</span>
+    <button class="ghostbtn" id="rotBtn">סובב צוואר</button>
+  </div>
+  <div class="filter" id="colorLegend"></div>
+
+  <div class="scroller" id="scroller" dir="ltr">
+    <div class="neck" id="neck"></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:#9aa;box-shadow:0 0 0 2px #fff"></i>טוניקה</span>
+    <span><i class="sw" style="background:#9aa"></i>בתיבה שנבחרה</span>
+    <span><i class="sw" style="background:#9aa;opacity:.42"></i>בסולם, מחוץ לתיבה</span>
+    <span><i class="sw" style="background:#9aa;opacity:.22"></i>מחוץ לסולם</span>
+  </div>
+</div>
+
+<script>
+const OPEN = [40, 45, 50, 55, 59, 64];        // E2 A2 D3 G3 B3 E4 (MIDI)
+const FRETS = 17;
+const EN = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const HE = ['דו','דו♯','רה','רה♯','מי','פה','פה♯','סול','סול♯','לה','לה♯','סי'];
+const SCALES = {
+  major:    { ints:[0,2,4,5,7,9,11], nps:3, name:'מז׳ור (דו רה מי)' },
+  minor:    { ints:[0,3,5,7,10],     nps:2, name:'פנטטוני מינור' },
+  majorPent:{ ints:[0,2,4,7,9],      nps:2, name:'פנטטוני מז׳ור' },
+  blues:    { ints:[0,3,5,6,7,10],   base:'minor', name:'בלוז' }
+};
+const scaleInts = () => SCALES[state.scale] ? SCALES[state.scale].ints : null;
+const boxCount = () => { const sc = SCALES[state.scale]; return sc ? (sc.base ? SCALES[sc.base].ints.length : sc.ints.length) : 0; };
+const THICK = ['4px','3.4px','2.8px','2.2px','1.7px','1.3px'];
+const MARKERS = {3:1,5:1,7:1,9:1,12:2,15:1,17:1};
+
+const state = { nota:'he', root:9, scale:'minor', box:1, showAll:true,
+                vertical: window.innerWidth < 760, bpm:110, filter: new Set(), octOnly:false };
+
+const $ = id => document.getElementById(id);
+const neck = $('neck');
+let cells = [];               // cells[s][f] -> note element
+
+const nm = pc => (state.nota === 'he' ? HE : EN)[pc];
+
+// A distinct colour for each of the 12 notes: naturals bright, sharps deeper.
+const NATURAL = [1,0,1,0,1,1,0,1,0,1,0,1];
+const COLORS = [
+  '#ff4d4d', // C  red
+  '#c2410c', // C#
+  '#ff9f1c', // D  orange
+  '#a16207', // D#
+  '#ffe14d', // E  yellow
+  '#7bdc5a', // F  green
+  '#15803d', // F#
+  '#3ddbd0', // G  turquoise
+  '#0e7490', // G#
+  '#5b9dff', // A  blue
+  '#4338ca', // A#
+  '#c58cff'  // B  violet
+];
+const textColor = pc => NATURAL[pc] ? '#141008' : '#ffffff';
+
+function fillLegend(){
+  const L = $('colorLegend');
+  L.innerHTML = '';
+  const all = document.createElement('button');
+  all.className = 'chip' + (state.filter.size === 0 ? ' on' : '');
+  all.textContent = 'הכל';
+  all.onclick = () => { state.filter.clear(); fillLegend(); render(); };
+  L.appendChild(all);
+  for (let pc = 0; pc < 12; pc++){
+    const b = document.createElement('button');
+    b.className = 'chip' + (state.filter.has(pc) ? ' on' : '');
+    b.innerHTML = `<i class="sw" style="background:${COLORS[pc]}"></i>${nm(pc)}`;
+    b.onclick = () => {
+      state.filter.has(pc) ? state.filter.delete(pc) : state.filter.add(pc);
+      fillLegend(); render();
+    };
+    L.appendChild(b);
+  }
+}
+
+function fillRoots(){
+  const sel = $('rootSel');
+  sel.innerHTML = '';
+  for (let pc = 0; pc < 12; pc++){
+    const o = document.createElement('option');
+    o.value = pc; o.textContent = nm(pc);
+    if (pc === state.root) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+function build(){
+  neck.innerHTML = '';
+  neck.className = 'neck ' + (state.vertical ? 'v' : 'h');
+  if (state.vertical){
+    neck.style.gridTemplateRows = `46px repeat(${FRETS}, 44px)`;
+    neck.style.gridTemplateColumns = '';
+  } else {
+    neck.style.gridTemplateColumns = `52px repeat(${FRETS}, 58px)`;
+    neck.style.gridTemplateRows = 'repeat(6, 40px) 26px';
+  }
+  cells = OPEN.map(() => []);
+  for (let f = 0; f <= FRETS; f++){
+    // fret label + inlay dots
+    const l = document.createElement('div');
+    l.className = 'lbl';
+    let dots = '';
+    if (MARKERS[f]) dots = '<div class="dots">' + '<i class="dot"></i>'.repeat(MARKERS[f]) + '</div>';
+    l.innerHTML = (f === 0 ? '' : `<span>${f}</span>`) + dots;
+    if (state.vertical){ l.style.gridRow = f + 1; l.style.gridColumn = 1; }
+    else { l.style.gridRow = 7; l.style.gridColumn = f + 1; }
+    neck.appendChild(l);
+
+    for (let s = 0; s < 6; s++){
+      const c = document.createElement('div');
+      c.className = 'cell' + (f === 0 ? ' f0' : '');
+      c.style.setProperty('--t', THICK[s]);
+      if (state.vertical){ c.style.gridRow = f + 1; c.style.gridColumn = s + 2; }
+      else { c.style.gridRow = 6 - s; c.style.gridColumn = f + 1; }
+      const n = document.createElement('div');
+      n.className = 'note';
+      c.appendChild(n);
+      c.addEventListener('click', () => { unlock(); pluck(OPEN[s] + f); flash(n, 350); });
+      neck.appendChild(c);
+      cells[s][f] = n;
+    }
+  }
+  render();
+}
+
+// N-notes-per-string positions; position k starts on scale degree k on the low E string
+function npsNotes(ints, nps, k){
+  const inScale = m => ints.includes(((m - state.root) % 12 + 12) % 12);
+  const pitches = [];
+  for (let m = 28; m <= 120; m++) if (inScale(m)) pitches.push(m);
+  const pc = (state.root + ints[(k - 1) % ints.length]) % 12;
+  const start = 40 + ((pc - 4 + 12) % 12);
+  const make = st => {
+    const i = pitches.indexOf(st), out = [];
+    for (let s = 0; s < 6; s++) for (let j = 0; j < nps; j++){
+      const m = pitches[i + nps*s + j];
+      out.push({ s, f: m - OPEN[s], m });
+    }
+    return out;
+  };
+  let notes = make(start);
+  if (Math.min(...notes.map(n => n.f)) < 0) notes = make(start + 12);
+  if (Math.max(...notes.map(n => n.f)) > FRETS && Math.min(...notes.map(n => n.f)) >= 12) notes = make(start - 12);
+  return notes;
+}
+
+function boxNotes(k){
+  const sc = SCALES[state.scale];
+  if (!sc) return [];
+  if (!sc.base) return npsNotes(sc.ints, sc.nps, k);
+  // Blues: minor-pentatonic box plus the extra "blue" note(s) placed on the nearest string
+  const base = SCALES[sc.base];
+  const notes = npsNotes(base.ints, base.nps, k);
+  const extra = sc.ints.filter(i => !base.ints.includes(i)).map(i => (state.root + i) % 12);
+  const maxF = Math.max(...notes.map(n => n.f));
+  const lo = notes[0].m, hi = notes[notes.length - 1].m;
+  for (let m = lo + 1; m < hi; m++){
+    if (!extra.includes(m % 12)) continue;
+    let target = 5;
+    for (let s = 0; s < 6; s++){
+      const ns = notes.filter(n => n.s === s);
+      const sLo = Math.min(...ns.map(n => n.m)), sHi = Math.max(...ns.map(n => n.m));
+      if (m > sLo && m < sHi){ target = s; break; }
+      const next = notes.filter(n => n.s === s + 1);
+      if (next.length && m > sHi && m < Math.min(...next.map(n => n.m))){
+        target = (m - OPEN[s] <= maxF + 1) ? s : s + 1; break;
+      }
+    }
+    notes.push({ s: target, f: m - OPEN[target], m });
+  }
+  return notes.sort((a, b) => a.m - b.m);
+}
+
+function fillBoxes(){
+  const sel = $('boxSel'), n = boxCount();
+  if (state.box > n) state.box = 1;
+  sel.innerHTML = '<option value="0">כל הצוואר</option>';
+  for (let k = 1; k <= n; k++){
+    const o = document.createElement('option');
+    o.value = k; o.textContent = (n === 5 ? 'תיבה ' : 'מיקום ') + k;
+    if (k === state.box) o.selected = true;
+    sel.appendChild(o);
+  }
+  if (state.box === 0) sel.value = '0';
+}
+
+function render(){
+  const ints = scaleInts();
+  const scalePcs = ints ? ints.map(i => (state.root + i) % 12) : null;
+  const box = (ints && state.box > 0) ? new Set(boxNotes(state.box).map(n => n.s + '-' + n.f)) : null;
+
+  for (let s = 0; s < 6; s++) for (let f = 0; f <= FRETS; f++){
+    const el = cells[s][f];
+    const pc = (OPEN[s] + f) % 12;
+    el.textContent = nm(pc);
+    el.style.setProperty('--c', COLORS[pc]);
+    el.style.setProperty('--tc', textColor(pc));
+    let cls = 'note';
+    if (state.filter.size){
+      cls += state.filter.has(pc) ? ' full' : ' hidden';
+      if (scalePcs && pc === state.root && state.filter.has(pc)) cls += ' root';
+    } else if (!scalePcs){
+      cls += ' full';
+    } else if (scalePcs.includes(pc)){
+      const isRoot = pc === state.root;
+      cls += (!box || box.has(s + '-' + f)) ? ' full' : ' ghost';
+      if (isRoot) cls += ' root';
+    } else {
+      cls += state.showAll ? ' other' : ' hidden';
+    }
+    el.className = cls;
+  }
+
+  $('boxSel').disabled = !ints;
+  $('playBtn').disabled = !ints;
+  if (ints){
+    const title = SCALES[state.scale].name + ' ב' + nm(state.root);
+    $('info').innerHTML = `<h2>${title}</h2>` + scalePcs.map(pc =>
+      `<span class="tok${pc === state.root ? ' r' : ''}" style="background:${COLORS[pc]};color:${textColor(pc)}">${nm(pc)}</span>`).join('');
+  } else {
+    $('info').innerHTML = '<h2>כל התווים</h2><span class="hint">כיוון סטנדרטי E A D G B E</span>';
+  }
+}
+
+function flash(el, ms){
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), ms);
+}
+
+/* ---------- Sound: Karplus-Strong plucked string ---------- */
+let ctx = null, master = null;
+const bufCache = new Map();
+// iOS: Web Audio is muted by the silent switch unless an <audio> element is playing.
+let unlockEl = null;
+function silentWavUrl(){
+  const sr = 8000, n = 800, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36 + n*2, true); w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  w(36,'data'); v.setUint32(40, n*2, true);
+  return URL.createObjectURL(new Blob([b], { type:'audio/wav' }));
+}
+function unlock(){
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+  try {
+    if (!unlockEl){
+      unlockEl = document.createElement('audio');
+      unlockEl.src = silentWavUrl(); unlockEl.loop = true;
+      unlockEl.setAttribute('playsinline', ''); unlockEl.setAttribute('x-webkit-playsinline', '');
+    }
+    const p = unlockEl.play(); if (p && p.catch) p.catch(() => {});
+  } catch(e){}
+  audio();
+  try { // tiny silent buffer, the classic Safari unlock
+    const s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050);
+    s.connect(ctx.destination); s.start(0);
+  } catch(e){}
+  updateSoundHint();
+}
+['touchend','click','keydown'].forEach(ev => document.addEventListener(ev, unlock, { capture:true }));
+
+function updateSoundHint(){
+  const h = $('soundHint');
+  if (!h) return;
+  h.style.display = (ctx && ctx.state === 'running') ? 'none' : 'flex';
+}
+
+function audio(){
+  if (!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0.55;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200;
+    master.connect(lp); lp.connect(ctx.destination);
+  }
+  if (ctx.state !== 'running') ctx.resume().then(updateSoundHint).catch(() => {});
+  if (!ctx._watch){ ctx._watch = true; ctx.onstatechange = updateSoundHint; }
+  return ctx;
+}
+function ksBuffer(midi){
+  if (bufCache.has(midi)) return bufCache.get(midi);
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  const sr = ctx.sampleRate;
+  const N = Math.max(2, Math.round(sr / freq));
+  const len = Math.floor(sr * 2.2);
+  const buf = ctx.createBuffer(1, len, sr);
+  const d = buf.getChannelData(0);
+  const ring = new Float32Array(N);
+  let prev = 0;
+  for (let i = 0; i < N; i++){ const r = Math.random()*2 - 1; prev = prev*0.5 + r*0.5; ring[i] = prev; }
+  const decay = 0.996 - Math.max(0, midi - 60) * 0.0004;
+  let p = 0;
+  for (let i = 0; i < len; i++){
+    const nx = (p + 1) % N;
+    d[i] = ring[p];
+    ring[p] = decay * 0.5 * (ring[p] + ring[nx]);
+    p = nx;
+  }
+  const res = { buf, rate: freq / (sr / N) };
+  bufCache.set(midi, res);
+  return res;
+}
+function pluck(midi){
+  try{
+    audio();
+    const { buf, rate } = ksBuffer(midi);
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.playbackRate.value = rate;
+    const g = ctx.createGain();
+    const t = ctx.currentTime;
+    g.gain.setValueAtTime(0.9, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 2.1);
+    src.connect(g); g.connect(master);
+    src.start(t); src.stop(t + 2.2);
+  }catch(e){ /* audio unavailable */ }
+}
+
+/* ---------- Scale playback ---------- */
+let timer = null;
+function stopPlay(){
+  clearTimeout(timer); timer = null;
+  $('foot').classList.remove('playing'); $('playLbl').textContent = 'נגן';
+}
+function playScale(){
+  if (timer){ stopPlay(); return; }
+  if (!SCALES[state.scale]) return;
+  let up = boxNotes(state.box > 0 ? state.box : 1);
+  if (state.octOnly){
+    const i = up.findIndex(n => n.m % 12 === state.root);
+    if (i >= 0){
+      const top = up[i].m + 12;
+      const j = up.findIndex(n => n.m === top);
+      up = j > i ? up.slice(i, j + 1) : up.slice(i);
+    }
+  }
+  const seq = up.concat(up.slice(0, -1).reverse());
+  $('foot').classList.add('playing'); $('playLbl').textContent = 'עצור';
+  const first = cells[seq[0].s][seq[0].f].parentElement;
+  first.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+  let i = 0;
+  const step = () => {
+    if (i >= seq.length){ stopPlay(); return; }
+    const n = seq[i++];
+    pluck(n.m);
+    flash(cells[n.s][n.f], Math.min(400, 60000 / state.bpm * 0.9));
+    timer = setTimeout(step, 60000 / state.bpm);
+  };
+  step();
+}
+
+/* ---------- Controls ---------- */
+$('notaSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.nota = b.dataset.n;
+  [...$('notaSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  fillRoots(); fillLegend(); render();
+});
+$('rootSel').addEventListener('change', e => { state.root = +e.target.value; stopPlay(); render(); });
+$('scaleSel').addEventListener('change', e => {
+  state.scale = e.target.value;
+  if (state.scale === 'major' && state.root === 9){ state.root = 0; fillRoots(); }  // דו מז׳ור = דו רה מי
+  fillBoxes(); stopPlay(); render();
+});
+$('octOnly').addEventListener('change', e => { state.octOnly = e.target.checked; stopPlay(); });
+$('boxSel').addEventListener('change', e => { state.box = +e.target.value; stopPlay(); render(); });
+$('showAll').addEventListener('change', e => { state.showAll = e.target.checked; render(); });
+$('bpm').addEventListener('input', e => { state.bpm = +e.target.value; $('bpmVal').textContent = state.bpm; });
+$('playBtn').addEventListener('click', () => { unlock(); playScale(); });
+$('soundBtn').addEventListener('click', () => { unlock(); pluck(57); setTimeout(() => pluck(64), 180); });
+$('rotBtn').addEventListener('click', () => { state.vertical = !state.vertical; build(); });
+
+fillRoots();
+fillLegend();
+fillBoxes();
+build();
+</script>
+</body>
+</html>
