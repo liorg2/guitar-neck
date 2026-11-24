@@ -47,6 +47,7 @@
 
   .knobs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
   .knob{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .knob small{font-weight:500;opacity:.8}
   .knob span{font-size:12px;font-weight:700;padding-inline-start:4px}
   .knob select{appearance:none;-webkit-appearance:none;width:100%;font-size:14px;font-weight:500;color:#f4ead6;
                background:#2b1d08 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e7b23e'/%3E%3C/svg%3E") no-repeat left 12px center;
@@ -64,6 +65,8 @@
        background:radial-gradient(circle at 35% 35%,#fff,#bdbdbd 60%,#8a8a8a);box-shadow:0 2px 4px #0008;cursor:pointer}
   input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#ddd;box-shadow:0 2px 4px #0008}
   .switches{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px}
+  .beat{width:9px;height:9px;border-radius:50%;background:#2b1d0833;box-shadow:inset 0 1px 2px #0004;transition:background .05s}
+  .beat.on{background:var(--led);box-shadow:0 0 8px var(--led)}
   .viewrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:500}
   .toggle.sm button{padding:4px 10px;font-size:13px}
   .toggle button:disabled{opacity:.45;cursor:not-allowed}
@@ -185,17 +188,18 @@
       </label>
       <label class="knob"><span>טוניקה</span><select id="rootSel"></select></label>
       <label class="knob"><span>מיקום</span><select id="boxSel"></select></label>
-      <label class="knob"><span>צליל</span><select id="soundSel"></select></label>
+      <label class="knob"><span>צליל <small id="sfStatus"></small></span><select id="soundSel"></select></label>
     </div>
 
     <div class="deck">
       <div>
         <div class="tempo">
-          <div class="row"><label for="bpm">קצב</label><output id="bpmVal">110</output></div>
-          <input type="range" id="bpm" min="50" max="240" value="110">
+          <div class="row"><label for="bpm">קצב</label><output id="bpmVal">170</output></div>
+          <input type="range" id="bpm" min="40" max="260" value="170">
         </div>
         <div class="switches">
           <label class="sw-lbl"><input type="checkbox" id="octOnly">אוקטבה אחת</label>
+          <label class="sw-lbl"><input type="checkbox" id="metro">מטרונום<i class="beat" id="beatDot"></i></label>
           <div class="viewrow">
             <span>הצג</span>
             <div class="toggle sm" id="viewSeg" role="group" aria-label="אילו תווים להציג">
@@ -250,8 +254,8 @@ const boxCount = () => { const sc = SCALES[state.scale]; return sc ? (sc.base ? 
 const THICK = ['4px','3.4px','2.8px','2.2px','1.7px','1.3px'];
 const MARKERS = {3:1,5:1,7:1,9:1,12:2,15:1,17:1,19:1,21:1};
 
-const state = { nota:'he', root:9, scale:'minor', box:1, view:'all', sound:'steel',
-                vertical: window.innerWidth < 760, bpm:110, filter: new Set(), octOnly:false };
+const state = { nota:'he', root:0, scale:'minor', box:1, view:'all', sound:'steel', metro:false,
+                vertical: window.innerWidth < 760, bpm:170, filter: new Set(), octOnly:false };
 
 const $ = id => document.getElementById(id);
 const neck = $('neck');
@@ -468,6 +472,8 @@ function flash(el, ms){
 
 /* ---------- Sound: Karplus-Strong plucked string ---------- */
 let ctx = null, master = null;
+let playAt = null;                        // when set, voices start at this audio-clock time
+const nowT = () => (playAt != null ? playAt : ctx.currentTime);
 const bufCache = new Map();
 // iOS: Web Audio is muted by the silent switch unless an <audio> element is playing.
 let unlockEl = null;
@@ -509,22 +515,107 @@ function audio(){
   if (!ctx){
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     master = ctx.createGain(); master.gain.value = 0.55;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.25;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000;
-    master.connect(lp); lp.connect(ctx.destination);
+    master.connect(comp); comp.connect(lp); lp.connect(ctx.destination);
   }
   if (ctx.state !== 'running') ctx.resume().then(updateSoundHint).catch(() => {});
   if (!ctx._watch){ ctx._watch = true; ctx.onstatechange = updateSoundHint; }
   return ctx;
 }
 /* ---------- Instruments ---------- */
-const SOUNDS = {
-  steel:  { label:'גיטרה אקוסטית',   type:'ks', damp:.50, decay:.9960, lp:4200, dur:2.2, vol:1.15 },
-  nylon:  { label:'גיטרה קלאסית',    type:'ks', damp:.85, decay:.9945, lp:2300, dur:2.2, vol:1.15 },
-  clean:  { label:'חשמלית נקייה',    type:'ks', damp:.40, decay:.9987, pick:.17, lp:6500, dur:2.8, vol:.55, chorus:true, peak:[2600, 5] },
-  drive:  { label:'חשמלית מעוותת',   type:'ks', damp:.35, decay:.9990, pick:.12, lp:3800, dur:3.0, vol:.30, drive:true, peak:[1800, 4] },
-  rhodes: { label:'פסנתר חשמלי',     type:'rhodes' },
-  organ:  { label:'אורגן',           type:'organ' }
+// Offline fallback: the old synthesised sounds (used until samples load, or if they can't be fetched)
+const SYNTH = {
+  steel:  { type:'ks', damp:.50, decay:.9960, lp:4200, dur:2.2, vol:1.15 },
+  nylon:  { type:'ks', damp:.85, decay:.9945, lp:2300, dur:2.2, vol:1.15 },
+  clean:  { type:'ks', damp:.40, decay:.9987, pick:.17, lp:6500, dur:2.8, vol:.55, chorus:true, peak:[2600, 5] },
+  drive:  { type:'ks', damp:.35, decay:.9990, pick:.12, lp:3800, dur:3.0, vol:.30, drive:true, peak:[1800, 4] },
+  rhodes: { type:'rhodes' }
 };
+
+// Real recorded instruments (FluidR3 General-MIDI soundfont, loaded on demand)
+const SF_BASES = [
+  'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/',
+  'https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/'
+];
+const SOUNDS = {
+  steel:      { label:'אקוסטית',            sf:'acoustic_guitar_steel', gain:6.5,  fb:'steel'  },
+  nylon:      { label:'קלאסית (ניילון)',    sf:'acoustic_guitar_nylon', gain:5.6,  fb:'nylon'  },
+  clean:      { label:'חשמלית נקייה',       sf:'electric_guitar_clean', gain:5.6,  fb:'clean'  },
+  jazz:       { label:'חשמלית ג׳אז',        sf:'electric_guitar_jazz',  gain:6.0,  fb:'clean'  },
+  overdrive:  { label:'חשמלית אוברדרייב',   sf:'overdriven_guitar',     gain:3.6,  fb:'drive'  },
+  distortion: { label:'חשמלית דיסטורשן',    sf:'distortion_guitar',     gain:3.2,  fb:'drive'  },
+  piano:      { label:'פסנתר',              sf:'acoustic_grand_piano',  gain:13,   fb:'rhodes' },
+  epiano:     { label:'פסנתר חשמלי',        sf:'electric_piano_1',      gain:4.7,  fb:'rhodes' }
+};
+
+const SF = {};                         // soundfont name -> { state, bufs: Map(midi -> AudioBuffer), promise }
+const SF_LO = 36, SF_HI = 92;          // notes the neck can reach, with some margin
+const NOTE_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+function noteToMidi(n){
+  const m = /^([A-G])([b#]?)(\d)$/.exec(n);
+  return (+m[3] + 1) * 12 + NOTE_PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+}
+function b64ToBuf(b64){
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u.buffer;
+}
+function setSfStatus(txt){ const e = $('sfStatus'); if (e) e.textContent = txt; }
+
+function loadSoundfont(key){
+  const cfg = SOUNDS[key];
+  let st = SF[cfg.sf];
+  if (st && st.promise) return st.promise;
+  st = SF[cfg.sf] = { state:'loading', bufs:new Map() };
+  if (state.sound === key) setSfStatus('· טוען…');
+  st.promise = (async () => {
+    let text = null;
+    for (const base of SF_BASES){
+      try {
+        const r = await fetch(base + cfg.sf + '-mp3.js');
+        if (r.ok){ text = await r.text(); break; }
+      } catch(e){}
+    }
+    if (!text) throw new Error('fetch failed');
+    audio();
+    const re = /"([A-G][b#]?\d)":\s*"data:audio\/mp3;base64,([^"]+)"/g;
+    const jobs = []; let m;
+    while ((m = re.exec(text))){
+      const midi = noteToMidi(m[1]);
+      if (midi < SF_LO || midi > SF_HI) continue;
+      const ab = b64ToBuf(m[2]);
+      jobs.push(ctx.decodeAudioData(ab).then(b => st.bufs.set(midi, b)).catch(() => {}));
+    }
+    await Promise.all(jobs);
+    if (!st.bufs.size) throw new Error('decode failed');
+    st.state = 'ready';
+  })().then(() => { if (state.sound === key) setSfStatus(''); })
+     .catch(() => { st.state = 'error'; if (state.sound === key) setSfStatus('· לא נטען, צליל מקורב'); });
+  return st.promise;
+}
+
+function voiceSample(midi, cfg, hold){
+  const st = SF[cfg.sf];
+  let b = st.bufs.get(midi), rate = 1;
+  if (!b){                                   // no exact sample: use the nearest one, re-pitched
+    let best = null, bd = 99;
+    st.bufs.forEach((buf, mm) => { const d = Math.abs(mm - midi); if (d < bd){ bd = d; best = mm; } });
+    if (best == null) return false;
+    b = st.bufs.get(best); rate = Math.pow(2, (midi - best) / 12);
+  }
+  const t = nowT();
+  const src = ctx.createBufferSource(); src.buffer = b; src.playbackRate.value = rate;
+  const g = ctx.createGain(); g.gain.setValueAtTime(cfg.gain, t);
+  if (hold){                                 // let go of the note a little after the beat
+    g.gain.setValueAtTime(cfg.gain, t + hold);
+    g.gain.exponentialRampToValueAtTime(0.001, t + hold + 0.22);
+    src.stop(t + hold + 0.3);
+  }
+  src.connect(g); g.connect(master); src.start(t);
+  return true;
+}
 
 function ksBuffer(midi, key, cfg){
   const id = key + midi;
@@ -567,7 +658,7 @@ function getDriveCurve(){
 
 function voiceString(midi, key, cfg){
   const { buf, rate } = ksBuffer(midi, key, cfg);
-  const t = ctx.currentTime;
+  const t = nowT();
   const mix = ctx.createGain();
   const add = (cents, gain) => {
     const src = ctx.createBufferSource();
@@ -598,7 +689,7 @@ function voiceString(midi, key, cfg){
 }
 
 function voiceRhodes(midi){
-  const f = 440 * Math.pow(2, (midi - 69) / 12), t = ctx.currentTime, dur = 2.4;
+  const f = 440 * Math.pow(2, (midi - 69) / 12), t = nowT(), dur = 2.4;
   const car = ctx.createOscillator(); car.frequency.value = f;
   const mod = ctx.createOscillator(); mod.frequency.value = f;
   const mg = ctx.createGain();
@@ -619,7 +710,7 @@ function voiceRhodes(midi){
 }
 
 function voiceOrgan(midi){
-  const f = 440 * Math.pow(2, (midi - 69) / 12), t = ctx.currentTime;
+  const f = 440 * Math.pow(2, (midi - 69) / 12), t = nowT();
   const out = ctx.createGain();
   out.gain.setValueAtTime(0.0001, t);
   out.gain.exponentialRampToValueAtTime(.34, t + .02);
@@ -633,24 +724,77 @@ function voiceOrgan(midi){
   out.connect(master);
 }
 
-function pluck(midi){
+function pluck(midi, hold, when){
   try{
     audio();
+    playAt = when == null ? null : when;
     const cfg = SOUNDS[state.sound];
-    if (cfg.type === 'ks') voiceString(midi, state.sound, cfg);
-    else if (cfg.type === 'rhodes') voiceRhodes(midi);
-    else voiceOrgan(midi);
+    const st = SF[cfg.sf];
+    if (st && st.state === 'ready' && voiceSample(midi, cfg, hold)) return;
+    if (!st) loadSoundfont(state.sound);
+    // samples not ready (yet): play the synthesised stand-in
+    const fb = SYNTH[cfg.fb];
+    if (fb.type === 'ks') voiceString(midi, cfg.fb, fb);
+    else voiceRhodes(midi);
   }catch(e){ /* audio unavailable */ }
+  finally { playAt = null; }
 }
 
-/* ---------- Scale playback ---------- */
-let timer = null;
+/* ---------- Beat clock: metronome + scale playback share it, so they stay in sync ---------- */
+const beatLen = () => 60 / state.bpm;
+const clock = { timer:null, next:0, beat:0 };
+let scaleRun = null;                       // { seq, i } while a scale is playing
+
+function click(t, accent){
+  const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = accent ? 1568 : 1046;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(accent ? 0.9 : 0.6, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.06);
+}
+function later(t, fn){ setTimeout(fn, Math.max(0, (t - ctx.currentTime) * 1000)); }
+
+function onBeat(t, beat){
+  if (state.metro){
+    click(t, beat % 4 === 0);
+    later(t, () => { const d = $('beatDot'); d.classList.add('on'); setTimeout(() => d.classList.remove('on'), 90); });
+  }
+  if (scaleRun){
+    const n = scaleRun.seq[scaleRun.i++];
+    pluck(n.m, beatLen() * 1.3, t);
+    later(t, () => flash(cells[n.s][n.f], Math.min(400, beatLen() * 900)));
+    if (scaleRun.i >= scaleRun.seq.length){
+      scaleRun = null;
+      later(t + beatLen(), () => { if (!scaleRun) setPlayUi(false); });
+      idleCheck();
+    }
+  }
+}
+function pump(){
+  while (clock.next < ctx.currentTime + 0.12){
+    onBeat(clock.next, clock.beat++);
+    clock.next += beatLen();               // a tempo change applies from the next beat
+  }
+}
+function clockStart(){
+  if (clock.timer) return;
+  audio();
+  clock.beat = 0; clock.next = ctx.currentTime + 0.08;
+  clock.timer = setInterval(pump, 25);
+}
+function idleCheck(){                      // stop the clock when neither metronome nor scale needs it
+  if (!state.metro && !scaleRun && clock.timer){ clearInterval(clock.timer); clock.timer = null; }
+}
+function setPlayUi(on){
+  $('foot').classList.toggle('playing', on);
+  $('playLbl').textContent = on ? 'עצור' : 'נגן';
+}
 function stopPlay(){
-  clearTimeout(timer); timer = null;
-  $('foot').classList.remove('playing'); $('playLbl').textContent = 'נגן';
+  scaleRun = null; setPlayUi(false); idleCheck();
 }
 function playScale(){
-  if (timer){ stopPlay(); return; }
+  if (scaleRun){ stopPlay(); return; }
   if (!SCALES[state.scale]) return;
   let up = boxNotes(state.box > 0 ? state.box : 1);
   if (state.octOnly){
@@ -662,18 +806,14 @@ function playScale(){
     }
   }
   const seq = up.concat(up.slice(0, -1).reverse());
-  $('foot').classList.add('playing'); $('playLbl').textContent = 'עצור';
-  const first = cells[seq[0].s][seq[0].f].parentElement;
-  first.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
-  let i = 0;
-  const step = () => {
-    if (i >= seq.length){ stopPlay(); return; }
-    const n = seq[i++];
-    pluck(n.m);
-    flash(cells[n.s][n.f], Math.min(400, 60000 / state.bpm * 0.9));
-    timer = setTimeout(step, 60000 / state.bpm);
-  };
-  step();
+  setPlayUi(true);
+  cells[seq[0].s][seq[0].f].parentElement.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+  scaleRun = { seq, i:0 };
+  clockStart();                            // no-op if the metronome already runs: the scale joins on its next beat
+}
+function setMetro(on){
+  state.metro = on;
+  if (on) clockStart(); else idleCheck();
 }
 
 /* ---------- Controls ---------- */
@@ -697,17 +837,23 @@ $('boxSel').addEventListener('change', e => { state.box = +e.target.value; stopP
     const o = document.createElement('option'); o.value = k; o.textContent = v.label; sel.appendChild(o);
   });
   sel.value = state.sound;
+  const strum = key => { if (state.sound === key) [52, 59, 64].forEach((m, i) => setTimeout(() => pluck(m), i * 45)); };
   sel.addEventListener('change', e => {
-    state.sound = e.target.value; bufCache.clear(); unlock();
-    // short strum so the new sound can be heard right away
-    [52, 59, 64].forEach((m, i) => setTimeout(() => pluck(m), i * 45));
+    const key = state.sound = e.target.value;
+    bufCache.clear(); unlock(); setSfStatus('');
+    const st = SF[SOUNDS[key].sf];
+    if (st && st.state === 'error') setSfStatus('· לא נטען, צליל מקורב');
+    // short strum so the new sound can be heard as soon as it is ready
+    loadSoundfont(key).then(() => strum(key), () => strum(key));
   });
+  loadSoundfont(state.sound);            // start fetching the default instrument right away
 })();
 $('viewSeg').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   state.view = b.dataset.v; render();
 });
 $('bpm').addEventListener('input', e => { state.bpm = +e.target.value; $('bpmVal').textContent = state.bpm; });
+$('metro').addEventListener('change', e => { unlock(); setMetro(e.target.checked); });
 $('playBtn').addEventListener('click', () => { unlock(); playScale(); });
 $('soundBtn').addEventListener('click', () => { unlock(); pluck(57); setTimeout(() => pluck(64), 180); });
 $('rotBtn').addEventListener('click', () => { state.vertical = !state.vertical; build(); });
