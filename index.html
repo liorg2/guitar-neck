@@ -608,12 +608,12 @@ function voiceSample(midi, cfg, hold){
   const t = nowT();
   const src = ctx.createBufferSource(); src.buffer = b; src.playbackRate.value = rate;
   const g = ctx.createGain(); g.gain.setValueAtTime(cfg.gain, t);
+  src.connect(g); g.connect(master); src.start(t);
   if (hold){                                 // let go of the note a little after the beat
     g.gain.setValueAtTime(cfg.gain, t + hold);
     g.gain.exponentialRampToValueAtTime(0.001, t + hold + 0.22);
-    src.stop(t + hold + 0.3);
+    src.stop(t + hold + 0.3);                // (stop() must come after start())
   }
-  src.connect(g); g.connect(master); src.start(t);
   return true;
 }
 
@@ -730,13 +730,16 @@ function pluck(midi, hold, when){
     playAt = when == null ? null : when;
     const cfg = SOUNDS[state.sound];
     const st = SF[cfg.sf];
-    if (st && st.state === 'ready' && voiceSample(midi, cfg, hold)) return;
+    if (st && st.state === 'ready'){
+      try { if (voiceSample(midi, cfg, hold)) return; }
+      catch(e){ console.error('sample voice failed', e); }   // fall through to the synth stand-in
+    }
     if (!st) loadSoundfont(state.sound);
     // samples not ready (yet): play the synthesised stand-in
     const fb = SYNTH[cfg.fb];
     if (fb.type === 'ks') voiceString(midi, cfg.fb, fb);
     else voiceRhodes(midi);
-  }catch(e){ /* audio unavailable */ }
+  }catch(e){ console.error('pluck failed', e); }
   finally { playAt = null; }
 }
 
