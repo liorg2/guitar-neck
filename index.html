@@ -19,7 +19,14 @@
        -webkit-tap-highlight-color:transparent}
   button,select,input{font-family:inherit}
   :focus-visible{outline:3px solid #7cc4ff;outline-offset:2px}
-  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+  .wrap{max-width:1680px;margin:0 auto;padding:16px 14px 40px}
+  @media (min-width:1100px){
+    .wrap{padding:24px 32px 56px}
+    .pedal{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:44px;align-items:center;padding:26px 30px 24px}
+    .pedal .brand{grid-column:1 / -1}
+    .pedal .deck{margin-top:0}
+    .brand h1{font-size:54px}
+  }
 
   /* ---------- The pedal ---------- */
   .pedal{position:relative;background:linear-gradient(170deg,#f0c255 0%,var(--enamel) 45%,var(--enamel-dk) 100%);
@@ -55,6 +62,9 @@
        background:radial-gradient(circle at 35% 35%,#fff,#bdbdbd 60%,#8a8a8a);box-shadow:0 2px 4px #0008;cursor:pointer}
   input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#ddd;box-shadow:0 2px 4px #0008}
   .switches{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:4px}
+  .viewrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:500}
+  .toggle.sm button{padding:6px 11px;font-size:14px}
+  .toggle button:disabled{opacity:.45;cursor:not-allowed}
   .sw-lbl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer}
   .sw-lbl input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:#2b1d0844;position:relative;cursor:pointer;transition:background .15s;box-shadow:inset 0 1px 3px #0005}
   .sw-lbl input::after{content:"";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#fff8e6;box-shadow:0 1px 2px #0006;transition:right .15s}
@@ -95,7 +105,7 @@
   .scroller{overflow:auto;border-radius:16px;background:#141a22;border:1px solid var(--line);padding:12px;box-shadow:inset 0 2px 10px #0006}
   .neck{display:grid;direction:ltr;position:relative;margin:0 auto}
   .neck.v{grid-template-columns:30px repeat(6,minmax(44px,1fr));max-width:460px}
-  .neck.h{width:max-content}
+  .neck.h{width:100%}
 
   .cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(90deg,var(--wood1),var(--wood2))}
   .neck.h .cell{background:linear-gradient(180deg,var(--wood1),var(--wood2))}
@@ -182,7 +192,14 @@
         </div>
         <div class="switches">
           <label class="sw-lbl"><input type="checkbox" id="octOnly">אוקטבה אחת</label>
-          <label class="sw-lbl"><input type="checkbox" id="showAll" checked>תווים מחוץ לסולם</label>
+          <div class="viewrow">
+            <span>הצג</span>
+            <div class="toggle sm" id="viewSeg" role="group" aria-label="אילו תווים להציג">
+              <button data-v="all" class="on">הכל</button>
+              <button data-v="scale">רק הסולם</button>
+              <button data-v="box">רק התיבה</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="foot" id="foot">
@@ -215,7 +232,7 @@
 
 <script>
 const OPEN = [40, 45, 50, 55, 59, 64];        // E2 A2 D3 G3 B3 E4 (MIDI)
-const FRETS = 17;
+const FRETS = 22;
 const EN = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const HE = ['דו','דו♯','רה','רה♯','מי','פה','פה♯','סול','סול♯','לה','לה♯','סי'];
 const SCALES = {
@@ -227,9 +244,9 @@ const SCALES = {
 const scaleInts = () => SCALES[state.scale] ? SCALES[state.scale].ints : null;
 const boxCount = () => { const sc = SCALES[state.scale]; return sc ? (sc.base ? SCALES[sc.base].ints.length : sc.ints.length) : 0; };
 const THICK = ['4px','3.4px','2.8px','2.2px','1.7px','1.3px'];
-const MARKERS = {3:1,5:1,7:1,9:1,12:2,15:1,17:1};
+const MARKERS = {3:1,5:1,7:1,9:1,12:2,15:1,17:1,19:1,21:1};
 
-const state = { nota:'he', root:9, scale:'minor', box:1, showAll:true,
+const state = { nota:'he', root:9, scale:'minor', box:1, view:'all',
                 vertical: window.innerWidth < 760, bpm:110, filter: new Set(), octOnly:false };
 
 const $ = id => document.getElementById(id);
@@ -293,8 +310,10 @@ function build(){
   if (state.vertical){
     neck.style.gridTemplateRows = `30px 46px repeat(${FRETS}, 44px)`;
     neck.style.gridTemplateColumns = '';
+    neck.style.minWidth = '';
   } else {
-    neck.style.gridTemplateColumns = `32px 52px repeat(${FRETS}, 58px)`;
+    neck.style.gridTemplateColumns = `32px 52px repeat(${FRETS}, minmax(52px, 1fr))`;
+    neck.style.minWidth = (32 + 52 + FRETS * 52) + 'px';
     neck.style.gridTemplateRows = 'repeat(6, 40px) 26px';
   }
   cells = OPEN.map(() => []);
@@ -416,15 +435,18 @@ function render(){
       cls += ' full';
     } else if (scalePcs.includes(pc)){
       const isRoot = pc === state.root;
-      cls += (!box || box.has(s + '-' + f)) ? ' full' : ' ghost';
-      if (isRoot) cls += ' root';
+      const inBox = !box || box.has(s + '-' + f);
+      if (inBox) cls += ' full';
+      else cls += state.view === 'box' ? ' hidden' : ' ghost';
+      if (isRoot && (inBox || state.view !== 'box')) cls += ' root';
     } else {
-      cls += state.showAll ? ' other' : ' hidden';
+      cls += state.view === 'all' ? ' other' : ' hidden';
     }
     el.className = cls;
   }
 
   $('boxSel').disabled = !ints;
+  [...$('viewSeg').children].forEach(b => { b.disabled = !ints; b.classList.toggle('on', b.dataset.v === state.view); });
   $('playBtn').disabled = !ints;
   if (ints){
     const title = SCALES[state.scale].name + ' ב' + nm(state.root);
@@ -576,7 +598,10 @@ $('scaleSel').addEventListener('change', e => {
 });
 $('octOnly').addEventListener('change', e => { state.octOnly = e.target.checked; stopPlay(); });
 $('boxSel').addEventListener('change', e => { state.box = +e.target.value; stopPlay(); render(); });
-$('showAll').addEventListener('change', e => { state.showAll = e.target.checked; render(); });
+$('viewSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  state.view = b.dataset.v; render();
+});
 $('bpm').addEventListener('input', e => { state.bpm = +e.target.value; $('bpmVal').textContent = state.bpm; });
 $('playBtn').addEventListener('click', () => { unlock(); playScale(); });
 $('soundBtn').addEventListener('click', () => { unlock(); pluck(57); setTimeout(() => pluck(64), 180); });
