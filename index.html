@@ -19,51 +19,53 @@
        -webkit-tap-highlight-color:transparent}
   button,select,input{font-family:inherit}
   :focus-visible{outline:3px solid #7cc4ff;outline-offset:2px}
-  .wrap{max-width:1680px;margin:0 auto;padding:16px 14px 40px}
+  .wrap{max-width:1680px;margin:0 auto;padding:10px 12px 32px}
   @media (min-width:1100px){
-    .wrap{padding:24px 32px 56px}
-    .pedal{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:44px;align-items:center;padding:26px 30px 24px}
+    .wrap{padding:14px 32px 40px}
+    .pedal{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:40px;align-items:center;padding:14px 26px 14px}
     .pedal .brand{grid-column:1 / -1}
     .pedal .deck{margin-top:0}
-    .brand h1{font-size:54px}
   }
 
   /* ---------- The pedal ---------- */
   .pedal{position:relative;background:linear-gradient(170deg,#f0c255 0%,var(--enamel) 45%,var(--enamel-dk) 100%);
-         color:var(--ink);border-radius:22px;padding:22px 22px 20px;
+         color:var(--ink);border-radius:18px;padding:16px 20px 14px;
          box-shadow:inset 0 2px 0 #fff6,inset 0 -3px 0 #0003,0 18px 40px #0007,0 2px 0 #0004}
-  .screw{position:absolute;width:12px;height:12px;border-radius:50%;
+  .screw{position:absolute;width:9px;height:9px;border-radius:50%;
          background:radial-gradient(circle at 35% 35%,#fff 0,#bbb 30%,#6d6d6d 75%);box-shadow:0 1px 1px #0006}
-  .screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:#555;transform:rotate(35deg)}
-  .screw.a{top:10px;right:10px}.screw.b{top:10px;left:10px}.screw.c{bottom:10px;right:10px}.screw.d{bottom:10px;left:10px}
+  .screw::after{content:"";position:absolute;left:1px;right:1px;top:4px;height:2px;background:#555;transform:rotate(35deg)}
+  .screw.a{top:6px;right:6px}.screw.b{top:6px;left:6px}.screw.c{bottom:6px;right:6px}.screw.d{bottom:6px;left:6px}
 
-  .brand{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-  .brand h1{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:44px;line-height:.9;margin:0;letter-spacing:-.5px}
-  .brand p{margin:6px 0 0;font-size:14px;opacity:.75;max-width:32ch}
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .brand .title{display:flex;align-items:baseline;gap:14px;min-width:0}
+  .brand h1{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:34px;line-height:1;margin:0;letter-spacing:-.5px}
+  .brand p{margin:0;font-size:13px;opacity:.75}
 
   .toggle{display:flex;background:#2b1d0822;border-radius:999px;padding:3px;box-shadow:inset 0 1px 3px #0004}
-  .toggle button{border:0;background:transparent;color:var(--ink);padding:7px 14px;border-radius:999px;font-size:15px;font-weight:500;cursor:pointer}
+  .toggle button{border:0;background:transparent;color:var(--ink);padding:5px 13px;border-radius:999px;font-size:14px;font-weight:500;cursor:pointer}
   .toggle button.on{background:var(--ink);color:var(--enamel);font-weight:700}
 
-  .knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .knob{display:flex;flex-direction:column;gap:5px;min-width:0}
-  .knob span{font-size:13px;font-weight:700;padding-inline-start:4px}
-  .knob select{appearance:none;-webkit-appearance:none;width:100%;font-size:15px;font-weight:500;color:#f4ead6;
+  .knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .knob{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .knob span{font-size:12px;font-weight:700;padding-inline-start:4px}
+  .knob select{appearance:none;-webkit-appearance:none;width:100%;font-size:14px;font-weight:500;color:#f4ead6;
                background:#2b1d08 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e7b23e'/%3E%3C/svg%3E") no-repeat left 12px center;
-               border:0;border-radius:12px;padding:11px 12px 11px 28px;box-shadow:inset 0 2px 4px #0008;cursor:pointer}
+               border:0;border-radius:10px;padding:8px 10px 8px 26px;box-shadow:inset 0 2px 4px #0008;cursor:pointer}
   .knob select:disabled{opacity:.45;cursor:not-allowed}
 
-  .deck{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-top:18px}
-  .tempo{display:flex;flex-direction:column;gap:8px}
-  .tempo .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
-  .tempo output{font-variant-numeric:tabular-nums}
+  .deck{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-top:12px}
+  .tempo{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700}
+  .tempo .row{display:contents}
+  .tempo label{order:0}
+  .tempo input{order:1;flex:1;min-width:0}
+  .tempo output{order:2;min-width:2.4em;text-align:end;font-variant-numeric:tabular-nums}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:8px;background:#2b1d08;box-shadow:inset 0 1px 3px #000a}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
        background:radial-gradient(circle at 35% 35%,#fff,#bdbdbd 60%,#8a8a8a);box-shadow:0 2px 4px #0008;cursor:pointer}
   input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#ddd;box-shadow:0 2px 4px #0008}
-  .switches{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:4px}
+  .switches{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px}
   .viewrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:500}
-  .toggle.sm button{padding:6px 11px;font-size:14px}
+  .toggle.sm button{padding:4px 10px;font-size:13px}
   .toggle button:disabled{opacity:.45;cursor:not-allowed}
   .sw-lbl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer}
   .sw-lbl input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:#2b1d0844;position:relative;cursor:pointer;transition:background .15s;box-shadow:inset 0 1px 3px #0005}
@@ -71,28 +73,28 @@
   .sw-lbl input:checked{background:var(--ink)}
   .sw-lbl input:checked::after{right:19px;background:var(--enamel)}
 
-  .foot{display:flex;flex-direction:column;align-items:center;gap:8px}
-  .led{width:12px;height:12px;border-radius:50%;background:#5a1410;box-shadow:inset 0 1px 2px #000a;transition:background .1s, box-shadow .1s}
+  .foot{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:4px}
+  .led{position:absolute;top:-2px;inset-inline-end:-2px;z-index:1;width:9px;height:9px;border-radius:50%;background:#5a1410;box-shadow:inset 0 1px 2px #000a;transition:background .1s, box-shadow .1s}
   .playing .led{background:var(--led);box-shadow:0 0 6px var(--led),0 0 16px #ff3b30aa}
-  #playBtn{width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;
+  #playBtn{width:54px;height:54px;border-radius:50%;border:0;cursor:pointer;
            background:radial-gradient(circle at 40% 35%,#fafafa 0,#cfcfcf 35%,#8d8d8d 70%,#6a6a6a 100%);
-           box-shadow:0 0 0 6px #2b1d08,0 6px 0 6px #1a1105,0 10px 18px #000a;transition:transform .08s, box-shadow .08s}
-  #playBtn:active{transform:translateY(4px);box-shadow:0 0 0 6px #2b1d08,0 2px 0 6px #1a1105,0 4px 10px #000a}
+           box-shadow:0 0 0 5px #2b1d08,0 4px 0 5px #1a1105,0 8px 14px #000a;transition:transform .08s, box-shadow .08s}
+  #playBtn:active{transform:translateY(3px);box-shadow:0 0 0 5px #2b1d08,0 1px 0 5px #1a1105,0 3px 8px #000a}
   #playBtn:disabled{opacity:.5;cursor:not-allowed}
-  #playLbl{font-size:14px;font-weight:700}
+  #playLbl{font-size:12px;font-weight:700}
 
   /* ---------- Below the pedal ---------- */
-  .sound{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:10px 14px;border-radius:14px;background:#ff3b3018;border:1px solid #ff3b3055}
-  .sound button{flex:none;border:0;border-radius:999px;background:var(--led);color:#fff;font-weight:700;font-size:15px;padding:9px 16px;cursor:pointer}
-  .sound small{color:var(--muted);font-size:12px;line-height:1.35}
+  .sound{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:5px 10px;border-radius:12px;background:#ff3b3018;border:1px solid #ff3b3055}
+  .sound button{flex:none;border:0;border-radius:999px;background:var(--led);color:#fff;font-weight:700;font-size:14px;padding:5px 12px;cursor:pointer}
+  .sound small{color:var(--muted);font-size:11px;line-height:1.3}
 
-  .scaleline{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:22px 0 12px}
-  .scaleline h2{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:22px;margin:0 0 0 6px}
+  .scaleline{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+  .scaleline h2{font-family:"Secular One",Rubik,sans-serif;font-weight:400;font-size:20px;margin:0 0 0 6px}
   .tok{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;padding:0 8px;border-radius:14px;font-size:13px;font-weight:700}
   .tok.r{box-shadow:0 0 0 2px #fff}
   .hint{color:var(--muted);font-size:14px}
 
-  .filter{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+  .filter{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
   .filter::-webkit-scrollbar{display:none}
   .chip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;border-radius:999px;border:1px solid var(--line);
         background:var(--stage2);color:var(--text);font-size:14px;cursor:pointer}
@@ -140,8 +142,10 @@
   .legend span{display:inline-flex;align-items:center;gap:7px}
 
   @media (max-width:560px){
-    .pedal{padding:20px 16px 18px}
-    .brand h1{font-size:36px}
+    .pedal{padding:14px 14px 12px}
+    .brand h1{font-size:28px}
+    .brand p{display:none}
+    .toggle button{padding:4px 11px}
     .knobs{grid-template-columns:1fr 1fr}
     .knobs .knob:first-child{grid-column:1 / -1}
   }
@@ -160,9 +164,9 @@
     <i class="screw a"></i><i class="screw b"></i><i class="screw c"></i><i class="screw d"></i>
 
     <div class="brand">
-      <div>
+      <div class="title">
         <h1>צוואר</h1>
-        <p>כל התווים על הגיטרה, וסולמות שאפשר לשמוע. הקישו על תו כדי לנגן אותו.</p>
+        <p>הקישו על תו כדי לשמוע אותו</p>
       </div>
       <div class="toggle" id="notaSeg" role="group" aria-label="שיטת כתיבה">
         <button data-n="he" class="on">דו רה מי</button>
